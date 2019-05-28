@@ -164,7 +164,7 @@ int main(int argc, char **argv)
 
 	ros::Subscriber odom_sub = n.subscribe("/base_pose_ground_truth", 10, odom_callback);		//Subscribe the initial conditions
 	// ros::Subscriber goal_sub = n.subscribe("/move_base_simple/goal", 10, goal_callback);		//Goal 
-	ros::Rate rate(2);
+	ros::Rate rate(10);
     ROS_INFO("Getting params");
     // get params
     n.getParam("/frenet_planner/path/max_speed", MAX_SPEED);

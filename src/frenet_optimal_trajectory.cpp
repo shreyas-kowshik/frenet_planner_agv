@@ -1,5 +1,7 @@
 #include "../include/frenet_optimal_trajectory.hpp"
 #include <ros/console.h>
+#define minS 10.0
+#define maxS 15.0
 
 
 // generates frenet path parameters including the cost
@@ -28,10 +30,10 @@ vector<FrenetPath> calc_frenet_paths(double c_speed, double c_d, double c_d_d, d
 			double minV = TARGET_SPEED - D_T_S*N_S_SAMPLE;
 			double maxV = TARGET_SPEED + D_T_S*N_S_SAMPLE;
 
-			for(double tv = minV; tv <= maxV + D_T_S; tv += D_T_S)
+			for(double s = s0 + minS; s <=s0 +  maxS + D_T_S; s += D_T_S)
 			{
 				FrenetPath tfp = fp;
-				quartic lon_qp(s0, c_speed, 0.0, tv, 0.0, Ti);
+				quartic lon_qp(s0, c_speed, 0.0, s, Ti);
 
 				for(auto const& t : fp.t) 
 				{
@@ -280,7 +282,7 @@ bool point_obcheck(geometry_msgs::Point32 p)
 	double dist1 = dist(p.x,p.y, ob_x[xlower], ob_y[xlower]);
 	double dist2 = dist(p.x, p.y, ob_x[xupper], ob_y[xupper]);
 	// cout << "checkpoint 2" << endl;
-	if(min(dist1, dist2) < 8.0)
+	if(min(dist1, dist2) < 3.0)
 		return 1;
 	it = lower_bound(ob_y.begin(), ob_y.end(), p.y);
 	if (it == ob_y.begin()) 
@@ -295,7 +297,7 @@ bool point_obcheck(geometry_msgs::Point32 p)
 	dist1 = dist(p.x,p.y, ob_x[ylower], ob_y[ylower]);
 	dist2 = dist(p.x, p.y, ob_x[yupper], ob_y[yupper]);
 	// cout << "checkpoint 3" << endl;
-	if(min(dist1, dist2) < 8.0)
+	if(min(dist1, dist2) < 3.0)
 		return 1;
 
 	// cout << "Point ob_check me load nahi he shayad" << endl;
@@ -325,6 +327,7 @@ bool check_collision(FrenetPath fp)
 vector<FrenetPath> check_path(vector<FrenetPath> fplist)
 {
 	vector<FrenetPath> fplist_final;
+	cout << "FPLIST size before : " << fplist.size() << endl;
 	for(int i = 0; i < fplist.size(); i++)
 	{
 		int flag = 0;
@@ -358,15 +361,16 @@ vector<FrenetPath> check_path(vector<FrenetPath> fplist)
 		// 		break;
 		// 	}			
 		// }
-		if(flag == 1){cout<< "continue"<<endl; continue;}
+		// if(flag == 1){cout<< "continue"<<endl; continue;}
 		if(check_collision(fplist[i])==0)
 			{
 				fplist_final.push_back(fplist[i]);
+				cout << "Path found" << endl;
 			}
 			
 		else
 		{
-			cout << "Obstacle" << endl;
+			// cout << "Obstacle" << endl;
 		}
 		
 	}
@@ -380,7 +384,7 @@ FrenetPath frenet_optimal_planning(Spline2D csp, double s0, double c_speed, doub
 
 	fplist = calc_global_paths(fplist, csp);
 	fplist = check_path(fplist);
-
+	cout << "\n\n---------\n Size of fp list: " << fplist.size() << "\n---------\n" << endl;
 	double min_cost = FLT_MAX;
 	FrenetPath bestpath;
 	for(auto const& fp : fplist)

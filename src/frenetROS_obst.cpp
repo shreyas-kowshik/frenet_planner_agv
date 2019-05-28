@@ -7,7 +7,12 @@
 #include <utility>
 #include <ros/console.h>
 
+float steer_angle;
 
+void steer_callback(const geometry_msgs::Twist steer)
+{
+	steer_angle = steer.angular.z;
+}
 
 
 
@@ -33,11 +38,11 @@ void costmap_callback(const nav_msgs::OccupancyGrid::ConstPtr& occupancy_grid)
             }
         }
     }
-	for (int i = 0; i < ob_y.size(); i++)
-	{
-		cout << ob_y[i]<< " ";
-	}
-	cout << endl;
+	// for (int i = 0; i < ob_y.size(); i++)
+	// {
+	// 	cout << ob_y[i]<< " ";
+	// }
+	// cout << endl;
 	// cout << "costmap callback ka bahar load he" << endl;
 }
 
@@ -52,6 +57,8 @@ void footprint_callback(const geometry_msgs::PolygonStampedConstPtr& p)
 void odom_callback(const nav_msgs::Odometry::ConstPtr& msg)
 {
 	odom = *msg;
+	odom.pose.pose.position.x += odom.twist.twist.linear.x * 1.0;
+	odom.pose.pose.position.y += odom.twist.twist.linear.y + 1.0;
 	ROS_INFO("Odom Received");
 }
 
@@ -201,14 +208,15 @@ int main(int argc, char **argv)
 	ros::Publisher global_path = n.advertise<nav_msgs::Path>("/global_path", 1);		//Publish global path
 	ros::Publisher target_vel = n.advertise<geometry_msgs::Twist>("/cmd_vel_frenet", 10);			//Publish velocity
 
-	ros::Subscriber odom_sub = n.subscribe("/base_pose_ground_truth", 10, odom_callback);	
+	ros::Subscriber odom_sub = n.subscribe("/base_pose_ground_truth1", 1, odom_callback);	
 	ros::Subscriber footprint_sub = n.subscribe<geometry_msgs::PolygonStamped>("/move_base/local_costmap/footprint", 10, footprint_callback);
-	ros::Subscriber costmap_sub = n.subscribe<nav_msgs::OccupancyGrid>("/move_base/local_costmap/costmap", 10000, costmap_callback);	//Subscribe the initial conditions
+	ros::Subscriber costmap_sub = n.subscribe<nav_msgs::OccupancyGrid>("/move_base/local_costmap/costmap", 10, costmap_callback);	//Subscribe the initial conditions
+	ros::Subscriber steer_sub = n.subscribe<geometry_msgs::Twist>("/cmd_delta", 1, steer_callback);
 	// ros::Subscriber goal_sub = n.subscribe("/move_base_simple/goal", 10, goal_callback);		//Goal 
 
 	
 	
-	ros::Rate rate(2);
+	ros::Rate rate(10);
     ROS_INFO("Getting params");
     // get params
     n.getParam("/frenet_planner/path/max_speed", MAX_SPEED);

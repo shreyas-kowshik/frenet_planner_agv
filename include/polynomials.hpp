@@ -20,9 +20,9 @@ public:
 
 class quartic{
 private:
-	double xs, vxs, axs, vxe, axe, a0, a1, a2, a3, a4;
+	double xs, vxs, axs, xe, vxe, axe, a0, a1, a2, a3, a4;
 public:
-	quartic(double, double, double, double, double, double);
+	quartic(double, double, double, double, double);
 	double calc_point(double);
 	double calc_first_derivative(double);
 	double calc_second_derivative(double);

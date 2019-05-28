@@ -67,7 +67,7 @@
 #  observation_sources: laser_scan_sensor
 #  laser_scan_sensor: {sensor_frame: main_laser_link, data_type: LaserScan, topic: /prius/main_laser/scan, marking: true, clearing: true}
 
-footprint: [ [-0.1,-0.125], [0.5,-0.125], [0.5,0.125], [-0.1,0.125] ]
+footprint: [ [-1.1,-1.125], [1.5,-1.125], [1.5,1.125], [-1.1,1.125] ]
 
 
 transform_tolerance: 0.2
