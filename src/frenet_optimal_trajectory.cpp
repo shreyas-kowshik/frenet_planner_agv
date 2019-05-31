@@ -365,7 +365,7 @@ vector<FrenetPath> check_path(vector<FrenetPath> fplist)
 		if(check_collision(fplist[i])==0)
 			{
 				fplist_final.push_back(fplist[i]);
-				cout << "Path found" << endl;
+				// cout << "Path found" << endl;
 			}
 			
 		else
