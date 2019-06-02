@@ -1,22 +1,39 @@
 #include "../include/frenet_optimal_trajectory.hpp"
 #include <ros/console.h>
-#define minS 10.0
-#define maxS 15.0
+#define minS 15.0
+#define maxS 25.0
+#define MAX_SHIFT 5.0
+
+// double last_d = 0;
 
 
 // generates frenet path parameters including the cost
-vector<FrenetPath> calc_frenet_paths(double c_speed, double c_d, double c_d_d, double c_d_dd, double s0)
+vector<FrenetPath> calc_frenet_paths(double c_speed, double c_d, double c_d_d, double c_d_dd, double s0, FrenetPath lp)
 {
 	vector<FrenetPath> frenet_paths;
+	double lower_limit, upper_limit;	
+	if (lp.d.size() == 0)
+	{
+		// cout << "No path" << endl;
+		lower_limit = -MAX_ROAD_WIDTH;
+		upper_limit =  MAX_ROAD_WIDTH + D_ROAD_W;
+	}
 
-	for(double di = -MAX_ROAD_WIDTH; di <= MAX_ROAD_WIDTH + D_ROAD_W; di += D_ROAD_W)
+	else
+	{
+		lower_limit = lp.d.back() - MAX_SHIFT;
+		upper_limit = lp.d.back() + MAX_SHIFT + D_ROAD_W;
+	}
+	cout << "lower limit " << lower_limit << endl;
+	cout << "upper limit " << upper_limit << endl;
+	for(double di = lower_limit; di <= upper_limit; di += D_ROAD_W)
 	{
 		for(double Ti = MINT; Ti <= MAXT + DT; Ti += DT)
 		{
 			FrenetPath fp;
 
 			quintic lat_qp(c_d, c_d_d, c_d_dd, di, 0.0, 0.0, Ti);
-
+			
 			for(double t = 0.0; t <= Ti + DT; t += DT)
 			{
 				fp.t.push_back(t);
@@ -282,7 +299,7 @@ bool point_obcheck(geometry_msgs::Point32 p)
 	double dist1 = dist(p.x,p.y, ob_x[xlower], ob_y[xlower]);
 	double dist2 = dist(p.x, p.y, ob_x[xupper], ob_y[xupper]);
 	// cout << "checkpoint 2" << endl;
-	if(min(dist1, dist2) < 3.0)
+	if(min(dist1, dist2) < 5.0)
 		return 1;
 	it = lower_bound(ob_y.begin(), ob_y.end(), p.y);
 	if (it == ob_y.begin()) 
@@ -297,7 +314,7 @@ bool point_obcheck(geometry_msgs::Point32 p)
 	dist1 = dist(p.x,p.y, ob_x[ylower], ob_y[ylower]);
 	dist2 = dist(p.x, p.y, ob_x[yupper], ob_y[yupper]);
 	// cout << "checkpoint 3" << endl;
-	if(min(dist1, dist2) < 3.0)
+	if(min(dist1, dist2) < 5.0)
 		return 1;
 
 	// cout << "Point ob_check me load nahi he shayad" << endl;
@@ -378,9 +395,9 @@ vector<FrenetPath> check_path(vector<FrenetPath> fplist)
 }
 
 // generates the path and returns the bestpath
-FrenetPath frenet_optimal_planning(Spline2D csp, double s0, double c_speed, double c_d, double c_d_d, double c_d_dd)
+FrenetPath frenet_optimal_planning(Spline2D csp, double s0, double c_speed, double c_d, double c_d_d, double c_d_dd, FrenetPath lp)
 {
-	vector<FrenetPath> fplist = calc_frenet_paths(c_speed, c_d, c_d_d, c_d_dd, s0);
+	vector<FrenetPath> fplist = calc_frenet_paths(c_speed, c_d, c_d_d, c_d_dd, s0, lp);
 
 	fplist = calc_global_paths(fplist, csp);
 	fplist = check_path(fplist);

@@ -58,7 +58,7 @@ void odom_callback(const nav_msgs::Odometry::ConstPtr& msg)
 {
 	odom = *msg;
 	odom.pose.pose.position.x += odom.twist.twist.linear.x * 1.0;
-	odom.pose.pose.position.y += odom.twist.twist.linear.y + 1.0;
+	odom.pose.pose.position.y += odom.twist.twist.linear.y * 1.0;
 	ROS_INFO("Odom Received");
 }
 
@@ -208,7 +208,7 @@ int main(int argc, char **argv)
 	ros::Publisher global_path = n.advertise<nav_msgs::Path>("/global_path", 1);		//Publish global path
 	ros::Publisher target_vel = n.advertise<geometry_msgs::Twist>("/cmd_vel_frenet", 10);			//Publish velocity
 
-	ros::Subscriber odom_sub = n.subscribe("/base_pose_ground_truth1", 1, odom_callback);	
+	ros::Subscriber odom_sub = n.subscribe("/base_pose_ground_truth", 1, odom_callback);	
 	ros::Subscriber footprint_sub = n.subscribe<geometry_msgs::PolygonStamped>("/move_base/local_costmap/footprint", 10, footprint_callback);
 	ros::Subscriber costmap_sub = n.subscribe<nav_msgs::OccupancyGrid>("/move_base/local_costmap/costmap", 10, costmap_callback);	//Subscribe the initial conditions
 	ros::Subscriber steer_sub = n.subscribe<geometry_msgs::Twist>("/cmd_delta", 1, steer_callback);
@@ -250,6 +250,7 @@ int main(int argc, char **argv)
 	ROS_INFO("Spline is made");
 	
 	double s0, c_d, c_d_d, c_d_dd, c_speed ;
+	FrenetPath lp;
 	// return 0;
 	while(ros::ok())
 	{
@@ -259,7 +260,8 @@ int main(int argc, char **argv)
 		// ROS_INFO("Initial conditions set");
 
 		//Getting the optimal frenet path
-		FrenetPath path = frenet_optimal_planning(csp, s0, c_speed, c_d, c_d_d, c_d_dd);
+		FrenetPath path = frenet_optimal_planning(csp, s0, c_speed, c_d, c_d_d, c_d_dd, lp);
+		lp = path;
 		ROS_INFO("Frenet path created");
 
 		nav_msgs::Path path_msg;

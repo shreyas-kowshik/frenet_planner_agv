@@ -50,10 +50,10 @@ class FrenetPath{
 
 };
 
-vector<FrenetPath> calc_frenet_paths(double, double, double, double, double);
+vector<FrenetPath> calc_frenet_paths(double, double, double, double, double, FrenetPath);
 vector<FrenetPath> calc_global_paths(vector<FrenetPath> &, double);
-vector<FrenetPath> check_path(vector<FrenetPath>	);
-FrenetPath frenet_optimal_planning(Spline2D, double, double, double, double, double);
+vector<FrenetPath> check_path(vector<FrenetPath>);
+FrenetPath frenet_optimal_planning(Spline2D, double, double, double, double, double, FrenetPath);
 
 bool check_collision(FrenetPath);
 
