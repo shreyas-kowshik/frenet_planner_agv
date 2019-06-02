@@ -22,6 +22,7 @@ find_package(catkin REQUIRED COMPONENTS
   pluginlib
   visualization_msgs
   tf
+  dynamic_reconfigure
   #tf_convesion
 )
 
@@ -112,10 +113,9 @@ endif()
 ##     and list every .cfg file to be processed
 
 ## Generate dynamic reconfigure parameters in the 'cfg' folder
-# generate_dynamic_reconfigure_options(
-#   cfg/DynReconf1.cfg
-#   cfg/DynReconf2.cfg
-# )
+ generate_dynamic_reconfigure_options(
+   cfg/reconfigure.cfg
+ )
 
 ###################################
 ## catkin specific configuration ##
@@ -145,6 +145,7 @@ include_directories(
   include
   ${catkin_INCLUDE_DIRS}
   ${EIGEN3_INCLUDE_DIR}
+  ${dynamic_reconfigure_PACKAGE_PATH}/cmake/cfgbuild.cmake
 )
 
 # list(APPEND "-std=c++11")
@@ -168,6 +169,9 @@ add_library(
 ## The recommended prefix ensures that target names across packages don't collide
 # add_executable(${PROJECT_NAME}_node src/frenet_planner_node.cpp)
 add_executable(frenet_planner src/frenetROS_obst.cpp)
+add_dependencies(frenet_planner ${PROJECT_NAME}_gencfg)
+target_link_libraries(frenet_planner ${catkin_LIBRARIES})
+
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
 ## target back to the shorter version for ease of user use

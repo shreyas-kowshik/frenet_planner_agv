@@ -1,7 +1,7 @@
 cost:
   kj: 0.50
   kt: 1.0
-  kd: 1.0
+  kd: 0.5
   klat: 1.0
   klon: 2.0
 

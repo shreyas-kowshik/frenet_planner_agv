@@ -1,9 +1,12 @@
 #include "../include/frenet_optimal_trajectory.hpp"
+
 #include <ros/ros.h>
 #include <geometry_msgs/Twist.h>
 
 #include <nav_msgs/Path.h>
 #include <tf/transform_datatypes.h>
+#include <dynamic_reconfigure/server.h>
+#include <frenet_planner/frenetConfig.h>
 #include <utility>
 #include <ros/console.h>
 
@@ -14,7 +17,27 @@ void steer_callback(const geometry_msgs::Twist steer)
 	steer_angle = steer.angular.z;
 }
 
+void configurecallback(frenet_planner::frenetConfig &config, uint32_t level)
+{
+    MAX_SPEED = config.MAX_SPEED;
+    MAX_ACCEL = config.MAX_ACCEL;
+    MAX_CURVATURE = config.MAX_CURVATURE;
+    MAX_ROAD_WIDTH = config.MAX_ROAD_WIDTH;
+    D_ROAD_W = config.D_ROAD_W;
+    DT = config.DT;
+    MAXT = config.MAXT;
+    MINT = config.MINT;
+    TARGET_SPEED = config.TARGET_SPEED;
+    D_T_S = config.D_T_S;
+    N_S_SAMPLE = config.N_S_SAMPLE;
+    ROBOT_RADIUS = config.ROBOT_RADIUS;
 
+    KJ = config.KJ;
+    KT = config.KT;
+    KD = config.KD;
+    KLAT = config.KLAT;
+    KLON = config.KLON;
+}
 
 void costmap_callback(const nav_msgs::OccupancyGrid::ConstPtr& occupancy_grid)
 {
@@ -238,6 +261,12 @@ int main(int argc, char **argv)
     n.getParam("/frenet_planner/cost/klat", KLAT);
     // cout << "param " << MAX_SPEED << endl;	
  	ROS_INFO("Got params");
+
+	dynamic_reconfigure::Server<frenet_planner::frenetConfig> server;
+    dynamic_reconfigure::Server<frenet_planner::frenetConfig>::CallbackType f;
+    f = boost::bind(&configurecallback, _1, _2);
+    server.setCallback(f);
+
 	//Waypoints are hardcoded for the time being. This needs to be decided later
 	vecD wx = {38, 38, 38, 38, 38, 38, 38, 38}; 	//38,-53 -> starting point of the bot 
 	vecD wy = {-57, -45,  -32.0,  -18.5,  -12.0, 0.0, 12, 35}; 
@@ -301,6 +330,7 @@ int main(int argc, char **argv)
 		global_path.publish(global_path_msg);
 		target_vel.publish(vel);
 		ROS_INFO("Path published");
+		cout << MAX_ACCEL;
 		ros::spinOnce();
 		rate.sleep();
 	}
